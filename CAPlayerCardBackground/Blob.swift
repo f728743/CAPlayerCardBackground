@@ -25,7 +25,7 @@ extension Blob {
     }
 
     private static var index = 0
-    
+
     static let hardcoded: [Blob] = [
         Blob(
             position: .init(x: -100, y: -100),
@@ -49,10 +49,10 @@ extension Blob {
             position: .init(x: 0, y: 0),
             size: .init(width: 100, height: 100),
             scale: 1.5,
-            rotation: CGFloat.pi 
+            rotation: CGFloat.pi
         )
     ]
-    
+
     static var random: Blob {
         let res = hardcoded[index]
         index += 1

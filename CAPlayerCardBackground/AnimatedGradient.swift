@@ -18,7 +18,7 @@ public struct AnimatedGradient: View {
 
     public var body: some View {
         Representable(blobs: blobs, duration: duration)
-        .clipped()
+            .clipped()
     }
 }
 
@@ -34,7 +34,7 @@ extension AnimatedGradient {
         }
 
         func updateView(_: AnimatedGradientView, context: Context) {
-            context.coordinator.create(blobs: blobs.map { $0.map{ UIColor($0) } })
+            context.coordinator.create(blobs: blobs.map { $0.map { UIColor($0) } })
             DispatchQueue.main.async {
                 context.coordinator.update(duration: duration)
             }
@@ -50,7 +50,7 @@ extension AnimatedGradient {
 
         func makeCoordinator() -> Coordinator {
             Coordinator(
-                blobs: blobs.map { $0.map{ UIColor($0) } },
+                blobs: blobs.map { $0.map { UIColor($0) } },
                 duration: duration
             )
         }
@@ -61,7 +61,7 @@ extension AnimatedGradient {
         var duration: Double
         var view: AnimatedGradientView
 
-        init(blobs: [[UIColor]], duration: Double ) {
+        init(blobs: [[UIColor]], duration: Double) {
             self.blobs = blobs
             self.duration = duration
             view = AnimatedGradientView(blobs: blobs, duration: duration)

@@ -30,7 +30,7 @@ public class AnimatedGradientView: UIView {
     }
 
     public func create(_ blobs: [[UIColor]]) {
-        layer.sublayers?.forEach { ($0 as? BlobLayer)?.removeFromSuperlayer() }        
+        layer.sublayers?.forEach { ($0 as? BlobLayer)?.removeFromSuperlayer() }
         for colors in blobs {
             layer.addSublayer(
                 BlobLayer(blob: .random, colors: colors.map { $0.cgColor }, viewSize: frame.size)
@@ -49,17 +49,28 @@ public class AnimatedGradientView: UIView {
                 Timer.publish(every: duration, on: .main, in: .common)
                     .autoconnect()
                     .sink { _ in
-                        layer.animate(to: .random, duration: duration)
+                        layer.morphBlob(to: .random, duration: duration)
                     }
                     .store(in: &cancellables)
             }
     }
-
 
     override public func layoutSubviews() {
         super.layoutSubviews()
         (layer.sublayers ?? [])
             .compactMap { $0 as? BlobLayer }
             .forEach { $0.viewSize = bounds.size }
+    }
+}
+
+struct AnimatedGradientView_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
+            Color.gray.ignoresSafeArea()
+            AnimatedGradient(
+                blobs: [[.white, .blue, .red]],
+                duration: 1
+            )
+        }
     }
 }

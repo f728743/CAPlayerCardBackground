@@ -56,7 +56,7 @@ public class BlobLayer: CAGradientLayer {
         super.init(layer: layer)
     }
 
-    func animate(to blob: Blob, duration: Double) {
+    func morphBlob(to blob: Blob, duration: Double) {
         removeAllAnimations()
 
         let position = makePositionAnimation(from: self.blob, to: blob)
