@@ -9,18 +9,18 @@ import SwiftUI
 
 struct ContentView: View {
     let colors: [[Color]] = [
-        [.blue, .green, .yellow],
-        [.orange, .red, .pink],
-        [.purple, .teal, .indigo]
+        [.green, .yellow],
+        [.orange, .pink],
+        [.purple, .indigo]
     ]
 
     var body: some View {
         ZStack {
-            Color.gray
+            Color(uiColor: .systemFill)
                 .ignoresSafeArea()
             gradient
-                .background(Color(uiColor: .lightGray))
-                .cornerRadius(8)
+                .background(Color(uiColor: .secondarySystemFill))
+                .cornerRadius(10)
                 .padding()
         }
     }

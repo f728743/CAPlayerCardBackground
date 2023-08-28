@@ -7,25 +7,6 @@
 
 import SwiftUI
 
-private extension Blob {
-    var cornerRadius: CGFloat {
-        min(size.width, size.height) / 2
-    }
-
-    func animatinPositionInRect(withSize size: CGSize) -> CGPoint {
-        positionInRect(withSize: size, considerBlobSize: false)
-    }
-
-    func positionInRect(withSize size: CGSize, considerBlobSize: Bool = true) -> CGPoint {
-        let adjustSize: CGSize = considerBlobSize ? self.size : .zero
-        let res: CGPoint = .init(
-            x: position.x + (size.width - adjustSize.width) / 2,
-            y: position.y + (size.height - adjustSize.height) / 2
-        )
-        return res
-    }
-}
-
 public class BlobLayer: CAGradientLayer {
     private(set) var blob: Blob
     var viewSize: CGSize {
@@ -37,11 +18,11 @@ public class BlobLayer: CAGradientLayer {
         }
     }
 
-    init(blob: Blob, colors: [CGColor], viewSize: CGSize) {
+    init(blob: Blob, viewSize: CGSize) {
         self.blob = blob
         self.viewSize = viewSize
         super.init()
-        self.colors = colors
+        colors = blob.colors
         cornerRadius = blob.cornerRadius
     }
 
@@ -57,57 +38,64 @@ public class BlobLayer: CAGradientLayer {
     }
 
     func morphBlob(to blob: Blob, duration: Double) {
-        removeAllAnimations()
-
-        let position = makePositionAnimation(from: self.blob, to: blob)
-        let size = makeResizeAnimation(from: self.blob, to: blob)
-        let cornerRadius = makeCornerRadiusAnimation(from: self.blob, to: blob)
-        let scale = makeScaleAnimation(from: self.blob, to: blob)
-        let rotate = makeRotateAnimation(from: self.blob, to: blob)
+        let position = makeAnimation(
+            .position,
+            from: self.blob.animationPositionInRect(withSize: viewSize),
+            to: blob.animationPositionInRect(withSize: viewSize)
+        )
+        let size = makeAnimation(.bounds, from: self.blob.bounds, to: blob.bounds)
+        let cornerRadius = makeAnimation(.cornerRadius, from: self.blob.cornerRadius, to: blob.cornerRadius)
+        let scale = makeAnimation(.scale, from: self.blob.scale, to: blob.scale)
+        let rotation = makeAnimation(.rotate, from: self.blob.rotation, to: blob.rotation)
+        let colors = makeAnimation(.colors, from: self.blob.cgColors, to: blob.cgColors)
 
         let groupAnimation = CAAnimationGroup()
-        groupAnimation.animations = [position, size, cornerRadius, scale, rotate]
+        groupAnimation.animations = [position, size, cornerRadius, scale, rotation, colors]
         groupAnimation.fillMode = .forwards
         groupAnimation.duration = duration
         groupAnimation.isRemovedOnCompletion = false
         groupAnimation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-        add(groupAnimation, forKey: "frame")
+
+        removeAllAnimations()
+        add(groupAnimation, forKey: "animations")
 
         self.blob = blob
     }
+}
 
-    func makePositionAnimation(from: Blob, to: Blob) -> CABasicAnimation {
-        let animation = CABasicAnimation(keyPath: "position")
-        animation.fromValue = from.animatinPositionInRect(withSize: viewSize)
-        animation.toValue = to.animatinPositionInRect(withSize: viewSize)
+private extension BlobLayer {
+    func makeAnimation(_ animation: Animation, from: Any, to: Any) -> CABasicAnimation {
+        let animation = CABasicAnimation(keyPath: animation.rawValue)
+        animation.fromValue = from
+        animation.toValue = to
         return animation
     }
+}
 
-    func makeResizeAnimation(from: Blob, to: Blob) -> CABasicAnimation {
-        let animation = CABasicAnimation(keyPath: "bounds")
-        animation.fromValue = CGRect(origin: .zero, size: from.size)
-        animation.toValue = CGRect(origin: .zero, size: to.size)
-        return animation
+private enum Animation: String {
+    case position
+    case bounds
+    case scale = "transform.scale"
+    case cornerRadius
+    case rotate = "transform.rotation"
+    case colors
+}
+
+private extension Blob {
+    var cornerRadius: CGFloat { min(size.width, size.height) / 2 }
+    var bounds: CGRect { .init(origin: .zero, size: size) }
+    var cgColors: [CGColor] { colors.map { $0.cgColor } }
+
+    func animationPositionInRect(withSize size: CGSize) -> CGPoint {
+        positionInRect(withSize: size, considerBlobSize: false)
     }
 
-    func makeScaleAnimation(from: Blob, to: Blob) -> CABasicAnimation {
-        let animation = CABasicAnimation(keyPath: "transform.scale")
-        animation.fromValue = from.scale
-        animation.toValue = to.scale
-        return animation
-    }
-
-    func makeCornerRadiusAnimation(from: Blob, to: Blob) -> CABasicAnimation {
-        let animation = CABasicAnimation(keyPath: "cornerRadius")
-        animation.fromValue = from.cornerRadius
-        animation.toValue = to.cornerRadius
-        return animation
-    }
-
-    func makeRotateAnimation(from: Blob, to: Blob) -> CABasicAnimation {
-        let animation = CABasicAnimation(keyPath: "transform.rotation")
-        animation.fromValue = from.rotation
-        animation.toValue = to.rotation
-        return animation
+    func positionInRect(withSize size: CGSize, considerBlobSize: Bool = true) -> CGPoint {
+        let adjustSize: CGSize = considerBlobSize ? self.size : .zero
+        let res: CGPoint = .init(
+            x: position.x + (size.width - adjustSize.width) / 2,
+            y: position.y + (size.height - adjustSize.height) / 2
+        )
+        return res
     }
 }

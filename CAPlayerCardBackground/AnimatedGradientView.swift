@@ -33,7 +33,7 @@ public class AnimatedGradientView: UIView {
         layer.sublayers?.forEach { ($0 as? BlobLayer)?.removeFromSuperlayer() }
         for colors in blobs {
             layer.addSublayer(
-                BlobLayer(blob: .random, colors: colors.map { $0.cgColor }, viewSize: frame.size)
+                BlobLayer(blob: .random(withColors: colors), viewSize: frame.size)
             )
         }
     }
@@ -49,7 +49,9 @@ public class AnimatedGradientView: UIView {
                 Timer.publish(every: duration, on: .main, in: .common)
                     .autoconnect()
                     .sink { _ in
-                        layer.morphBlob(to: .random, duration: duration)
+                        layer.morphBlob(
+                            to: .random(withColors: layer.blob.colors), duration: duration
+                        )
                     }
                     .store(in: &cancellables)
             }
