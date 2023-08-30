@@ -5,7 +5,7 @@
 //  Created by Alexey Vorobyov on 22.08.2023.
 //
 
-import SwiftUI
+import QuartzCore
 
 public class BlobLayer: CAGradientLayer {
     private(set) var blob: Blob
@@ -13,7 +13,7 @@ public class BlobLayer: CAGradientLayer {
         didSet {
             frame = CGRect(
                 origin: blob.positionInRect(withSize: viewSize),
-                size: blob.size
+                size: blob.shape.size
             )
         }
     }
@@ -22,7 +22,7 @@ public class BlobLayer: CAGradientLayer {
         self.blob = blob
         self.viewSize = viewSize
         super.init()
-        colors = blob.colors
+        colors = blob.cgColors
         cornerRadius = blob.cornerRadius
     }
 
@@ -45,8 +45,8 @@ public class BlobLayer: CAGradientLayer {
         )
         let size = makeAnimation(.bounds, from: self.blob.bounds, to: blob.bounds)
         let cornerRadius = makeAnimation(.cornerRadius, from: self.blob.cornerRadius, to: blob.cornerRadius)
-        let scale = makeAnimation(.scale, from: self.blob.scale, to: blob.scale)
-        let rotation = makeAnimation(.rotate, from: self.blob.rotation, to: blob.rotation)
+        let scale = makeAnimation(.scale, from: self.blob.shape.scale, to: blob.shape.scale)
+        let rotation = makeAnimation(.rotate, from: self.blob.shape.rotation, to: blob.shape.rotation)
         let colors = makeAnimation(.colors, from: self.blob.cgColors, to: blob.cgColors)
 
         let groupAnimation = CAAnimationGroup()
@@ -64,9 +64,10 @@ public class BlobLayer: CAGradientLayer {
 }
 
 private extension BlobLayer {
-    func makeAnimation(_ animation: Animation, from: Any, to: Any) -> CABasicAnimation {
-        let animation = CABasicAnimation(keyPath: animation.rawValue)
-        animation.fromValue = from
+    func makeAnimation(_ animationType: Animation, from _: Any, to: Any) -> CABasicAnimation {
+        let animation = CABasicAnimation(keyPath: animationType.rawValue)
+        animation.fromValue = presentation()?.value(forKeyPath: animationType.rawValue)
+//        animation.fromValue = from
         animation.toValue = to
         return animation
     }
@@ -82,8 +83,8 @@ private enum Animation: String {
 }
 
 private extension Blob {
-    var cornerRadius: CGFloat { min(size.width, size.height) / 2 }
-    var bounds: CGRect { .init(origin: .zero, size: size) }
+    var cornerRadius: CGFloat { min(shape.size.width, shape.size.height) / 2 }
+    var bounds: CGRect { .init(origin: .zero, size: shape.size) }
     var cgColors: [CGColor] { colors.map { $0.cgColor } }
 
     func animationPositionInRect(withSize size: CGSize) -> CGPoint {
@@ -91,10 +92,10 @@ private extension Blob {
     }
 
     func positionInRect(withSize size: CGSize, considerBlobSize: Bool = true) -> CGPoint {
-        let adjustSize: CGSize = considerBlobSize ? self.size : .zero
+        let adjustSize: CGSize = considerBlobSize ? self.shape.size : .zero
         let res: CGPoint = .init(
-            x: position.x + (size.width - adjustSize.width) / 2,
-            y: position.y + (size.height - adjustSize.height) / 2
+            x: shape.position.x + (size.width - adjustSize.width) / 2,
+            y: shape.position.y + (size.height - adjustSize.height) / 2
         )
         return res
     }

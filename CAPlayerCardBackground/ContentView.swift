@@ -27,7 +27,7 @@ struct ContentView: View {
 
     var gradient: some View {
         AnimatedGradient(
-            blobs: colors,
+            colors: colors,
             duration: 1
         )
     }

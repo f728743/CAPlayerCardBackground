@@ -14,11 +14,11 @@ public class AnimatedGradientView: UIView {
 
     var cancellables = Set<AnyCancellable>()
 
-    init(blobs: [[UIColor]], duration: Double) {
+    init(colors: [[UIColor]], duration: Double) {
         self.duration = duration
         super.init(frame: .zero)
 
-        create(blobs)
+        set(colors: colors)
         DispatchQueue.main.async {
             self.update(duration: duration)
         }
@@ -29,16 +29,16 @@ public class AnimatedGradientView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    public func create(_ blobs: [[UIColor]]) {
+    public func set(colors: [[UIColor]]) {
         layer.sublayers?.forEach { ($0 as? BlobLayer)?.removeFromSuperlayer() }
-        for colors in blobs {
+        for layerColors in colors {
             layer.addSublayer(
-                BlobLayer(blob: .random(withColors: colors), viewSize: frame.size)
+                BlobLayer(blob: .random(withColors: layerColors), viewSize: frame.size)
             )
         }
     }
 
-    public func update(duration: CGFloat) {
+    private func update(duration: CGFloat) {
         cancellables.removeAll()
         self.duration = duration
         guard duration > 0 else { return }
@@ -62,17 +62,5 @@ public class AnimatedGradientView: UIView {
         (layer.sublayers ?? [])
             .compactMap { $0 as? BlobLayer }
             .forEach { $0.viewSize = bounds.size }
-    }
-}
-
-struct AnimatedGradientView_Previews: PreviewProvider {
-    static var previews: some View {
-        ZStack {
-            Color.gray.ignoresSafeArea()
-            AnimatedGradient(
-                blobs: [[.white, .blue, .red]],
-                duration: 1
-            )
-        }
     }
 }
